@@ -122,6 +122,9 @@ process_copy_paths();
 # Substitute tokens in config files
 install_templates();
 
+# Install modules with carton
+carton_install() if $conf->{carton};
+
 # Prepare appserver(s)
 prepare_ic();
 prepare_rails();

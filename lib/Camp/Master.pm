@@ -30,6 +30,7 @@ our $VERSION = '3.03';
     camp_user_info
     camp_user_obj
     camp_user_tmpdir
+    carton_install
     config_hash
     create_camp_path
     create_camp_subdirectories
@@ -194,6 +195,38 @@ sub read_camp_config {
     %edits = map { $_ => 1, } @edits;
     $has_rails = $has_ic = undef;
     return @edits;
+}
+
+sub run_mkcamp_script {
+    my %opt = @_;
+    my $prefix = $opt{position};
+    my $conf = config_hash();
+    my $c_number = resolve_camp_number(shift);
+    my $filename = $prefix . '_mkcamp';
+    if ($conf->{post_mkcamp}) {
+    my $file = File::Spec->catfile( type_path(), 'mid_mkcamp', );
+    if ( -e $file ) {
+    open(my $INSTALL, '<', $file) or die "Type-specific config file missing: $file\n";
+    while( my $line = <$INSTALL>)  {
+    my @args = ( "bash", "-c", "/home/$camp_user/camp$c_number/$line" );
+    system(@args);
+
+    } 
+    close $INSTALL or die "Error closing $file: $!\n";
+    } else { print "You specified you wanted a $filename command to run but no file exists!\n"; }
+    }  
+}
+
+sub carton_install {
+    my $action = shift;
+    my $conf = config_hash();
+    my $camp = $conf->{path};
+    my $cmd;
+    if ($conf->{carton}) {
+    chdir($camp) or die "Cant chdir to $camp $!";
+    $cmd = "carton install";
+    do_system_soft($cmd);
+   }
 }
 
 sub camp_db_type {
