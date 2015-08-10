@@ -60,7 +60,9 @@ if (!$showpod) {
 
     if ($opt{config}) {
         # Run install_templates to rebuild templated config files and install them
+        run_refresh_command('before');
         install_templates();
+        run_refresh_command('after');
         $operation++;
     }
 

@@ -59,6 +59,7 @@ our $VERSION = '3.03';
     roles_path
     role_sql
     run_mkcamp_command
+    run_refresh_command
     server_control
     set_camp_comment
     set_camp_user
@@ -1065,6 +1066,21 @@ Command to restart your application server. An example for Ruby's Unicorn:
 =item post_mkcamp_command
 
 Command to be run after the mkcamp process is completed.
+
+=item after_templates_mkcamp_command
+
+Command to be run after mkcamp has installed the templates. Run only
+during the mkcamp run.
+
+=item before_refresh_command
+
+Command to be run right before the templates get installed. This
+affects both mkcamp and refresh-camp --config
+
+=item after_refresh_command
+
+Command to be run right after the templates are installed. This
+affects both mkcamp and refresh-camp --config
 
 =item db_type
 
@@ -3059,17 +3075,27 @@ sub camp_list {
     return @result;
 }
 
-sub run_mkcamp_command {
-    my $token = shift;
+sub _run_hook_command {
+    my ($action, $token) = @_;
     my $conf = config_hash();
     my $camp = $conf->{path};
 
-    if (my $cmd = $conf->{"${token}_mkcamp_command"}) {
+    if (my $cmd = $conf->{"${token}_${action}_command"}) {
         chdir($camp) or die "Can not change directory to $camp: $!";
         return do_system_soft($cmd) == 0;
     }
 
     return;
+}
+
+sub run_mkcamp_command {
+    my $token = shift;
+    _run_hook_command(mkcamp => $token);
+}
+
+sub run_refresh_command {
+    my $token = shift;
+    _run_hook_command(refresh => $token);
 }
 
 1;

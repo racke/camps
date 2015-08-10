@@ -1,0 +1,63 @@
+#!/usr/bin/env perl
+
+use strict;
+use warnings;
+use YAML qw/LoadFile DumpFile Dump/;
+use Data::Dumper;
+use File::HomeDir;
+use File::Copy qw/move/;
+use File::Spec::Functions qw/catfile/;
+use Hash::Merge::Simple qw/merge/;
+
+my ($file, $apptype) = @ARGV;
+my $shared_conf_name = 'camps-shared-config';
+
+unless ($apptype && $file) {
+    print <<"HELP";
+Usage $0 <file> [<apptype>]
+
+Update the Dancer configuration file (usually the development)
+inserting the values from ~/$shared_conf_name, which should be a
+YAML file.
+
+~/$shared_conf_name must consist of at least an "all" stanza, which
+will hold the configuration structure to be merged into the
+camp-generated config.
+
+If there is a stanza which matches the optional apptype argument, that
+stanza is merged as well.
+
+HELP
+    exit 2;
+}
+
+die "Missing target $file" unless -f $file;
+my $existing = LoadFile($file);
+my $shared_config = catfile(File::HomeDir->my_home, $shared_conf_name);
+# if the file doesn't exist, exits
+
+unless (-f $shared_config) {
+    print "$shared_config doesn't exist, nothing to do\n";
+    exit;
+}
+
+
+my $shared;
+eval { $shared = LoadFile($shared_config) };
+unless ($shared) {
+    print "$shared_config couldn't be loaded $@\n";
+    exit;
+}
+
+
+if ($shared->{all}) {
+    $existing = merge($existing, $shared->{all});
+}
+
+if ($apptype && $shared->{$apptype}) {
+    $existing = merge($existing, $shared->{$apptype});
+}
+move($file, $file . '.backup-' . time());
+DumpFile($file, $existing);
+chmod 0600, $file;
+print "$file updated\n";

@@ -1,0 +1,41 @@
+#!/bin/bash
+# this script is supposed to be source at login
+# ondir should be installed system-wide
+# source in 
+# http://swapoff.org/ondir.html
+# https://github.com/alecthomas/ondir
+
+if [ ! -f $HOME/.ondirrc ]; then
+    cat <<EOF > $HOME/.ondirrc
+enter ~/camp([0-9]+)
+   echo "Entering camp \$ONDIRWD"
+   export PRE_CAMP_PERL5LIB=\$PERL5LIB
+   export PRE_CAMP_PERL_LOCAL_LIB_ROOT=\$PERL_LOCAL_LIB_ROOT
+   export PRE_CAMP_PERL_MB_OPT=\$PERL_MB_OPT
+   export PRE_CAMP_PERL_MM_OPT=\$PERL_MM_OPT
+   eval \$(perl -Mlocal::lib=\$ONDIRWD/local)
+
+leave ~/camp([0-9]+)
+   echo "Exit camp \$ONDIRWD"
+   export PERL5LIB=\$PRE_CAMP_PERL5LIB
+   export PERL_LOCAL_LIB_ROOT=\$PRE_CAMP_PERL_LOCAL_LIB_ROOT
+   export PERL_MB_OPT=\$PRE_CAMP_PERL_MB_OPT
+   export PERL_MM_OPT=\$PRE_CAMP_PERL_MM_OPT
+EOF
+fi
+
+
+cd()
+{
+    builtin cd "$@" && eval "`ondir \"$OLDPWD\" \"$PWD\"`"
+}
+pushd()
+{
+    builtin pushd "$@" && eval "`ondir \"$OLDPWD\" \"$PWD\"`"
+}
+popd()
+{
+    builtin popd "$@" && eval "`ondir \"$OLDPWD\" \"$PWD\"`"
+}
+# Run ondir on login
+eval "`ondir /`"
