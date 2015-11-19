@@ -1918,6 +1918,11 @@ sub prepare_ic {
     my $conf = config_hash();
     my $file;
 
+    if ($conf->{skip_ic_prepare}) {
+        type_message('skip_prepare_ic');
+        return;
+    };
+
     # Set the main server script as executable.
     $file = "$conf->{icroot}/bin/interchange";
     if (-f $file) {
