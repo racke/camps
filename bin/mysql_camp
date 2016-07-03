@@ -25,6 +25,7 @@ GetOptions(
     'database=s'    => \$database,
     'user=s'        => \$user,
     'camp=i'        => \$camp,
+    'number=i'      => \$camp,
     show            => \$show,
     usage           => \$usage,
 );
